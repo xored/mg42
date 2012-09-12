@@ -1,0 +1,3 @@
+* mg42
+  Java agent for tracing enter/exit from methods with an extra info. Consumers of this library should be able to easily specify which method starts/ends they are interested in and contribute some client code which can collect extra information. The resulting event flow should somehow passed to output stream (socket/file/console). 
+
