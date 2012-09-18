@@ -1,3 +1,62 @@
-* mg42
-  Java agent for tracing enter/exit from methods with an extra info. Consumers of this library should be able to easily specify which method starts/ends they are interested in and contribute some client code which can collect extra information. The resulting event flow should somehow passed to output stream (socket/file/console). 
+* Overview
+  Java agent for tracing enter/exit from methods with an extra info. Consumers of this library should be able to easily specify which method starts/ends they are interested in and contribute some client code which can collect extra information. The resulting object flow is passed to output stream (stdout, file, socket). Optionally agent can listen to commands via local port like start/stop capturing.
 
+  The scope of this project is only to collect information from application, not alter it (though technically some side effects are possible). If some application projects require to alter the application behavior, they have to use other libraries to reach this goal.
+
+  Since there's no universal way to automatically serialize all arguments, it is the responsibility of client's code to extract required information from method arguments.
+
+* Agent arguments
+  - *out* -- URI where to send an info. Examples: *tcp://localhost:1234*, *file:/home/user/out.txt*. If nothing specified, sends output to =stdout=.
+  - *port* -- Local port to listen for commands. Commands are plain UTF-8 strings (=start= or =stop=).
+  - *start* -- If true, start tracing immediately, otherwise wait for =start= command via =port=.
+  Example: 
+  #+_src bash
+  java ...  -javaagent:mg42.jar=out=tcp://localhost:1234=port=4750=start=true
+  #+end_src
+
+* Object encoding
+  Until we hit performance issues we are going to use JSON objects and Google Gson library to work with objects. Thus, agent sends JSON-encoded objects separated with newline char (does not make sense for sockets, but convenient for stdout and files to separate objects).
+  Here's a sample JSON object corresponds to a single event captured from =mg42=:
+  #+BEGIN_SRC js
+    {
+        "method" : "fully.qualified.Method#name",
+        //to distinguish overrides:
+        "methodArgs": ["fully.qualified.Arg1", "fully.qualified.Arg2"], 
+        "callId" : 23842342, //Matching method start/end must have the same ID
+        "kind" : "start", //Or "end"
+        "threadId" : 142,
+        "threadName" : "Worker-1",
+        "data" : { //arbitrary non-null data from client code
+            "mystr" : "str",
+            "mylist" : [4, 8, 15, 16, 23, 42],
+            "myobj" { "foo":"bar" }
+        }
+    }
+  #+END_SRC
+  
+* Registering handlers
+  The exact spec requires research on what we can do with Java agents, but ideally client should be able just to write class like this:
+  #+BEGIN_SRC java
+      @MG42
+      class JobHandler
+      {
+          @OnStart(
+            cls=org.eclipse.core.runtime.jobs.Job.class,
+            method="run",
+            args=null
+          )
+          public static Object onJobStart(Member method, Object obj, Object[] args) {
+              return "Started job " + ((Job)obj).getName();
+          }
+    
+          @OnEnd(
+                   cls=org.eclipse.core.runtime.jobs.Job.class,
+                   method="setUser",
+                   args={ Boolean.class }
+          )
+          public static Object setUser(Member method, Object obj, Object[] args) {
+              return String.format("Job %s setUser %b", ((Job)obj).getName(), args[0]);
+          }
+      }
+  #+END_SRC
+  For now let's consider that once agent meets a class annotated with =@MG42=, it finds and instruments all classes used from the handler.
