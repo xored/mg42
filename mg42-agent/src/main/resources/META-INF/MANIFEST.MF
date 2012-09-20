@@ -1,0 +1,5 @@
+Main-Class: com.xored.mg42.agent.Agent
+Agent-Class: com.xored.mg42.agent.Agent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true
+Premain-Class: com.xored.mg42.agent.Agent
