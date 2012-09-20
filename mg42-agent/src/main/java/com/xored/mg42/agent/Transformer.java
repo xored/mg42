@@ -9,6 +9,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.AdviceAdapter;
 
 public class Transformer implements ClassFileTransformer, Opcodes {
 	private final Config config;
@@ -34,13 +35,26 @@ public class Transformer implements ClassFileTransformer, Opcodes {
 			@Override
 			public MethodVisitor visitMethod(int access, String name,
 					String desc, String signature, String[] exceptions) {
+				MethodVisitor mv = super.visitMethod(access, name, desc,
+						signature, exceptions);
+
 				MethodTrace methodTrace = classTrace.find(name, desc);
-				if (methodTrace != null) {
-					System.out.println(String.format("About to apply %s",
-							methodTrace));
+				if (methodTrace == null) {
+					return mv;
 				}
-				return super.visitMethod(access, name, desc, signature,
-						exceptions);
+				System.out.println(String.format("About to apply %s",
+						methodTrace));
+
+				return new AdviceAdapter(ASM4, mv, access, name, desc) {
+					protected void onMethodEnter() {
+						mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out",
+								"Ljava/io/PrintStream;");
+						mv.visitLdcInsn("hello");
+						mv.visitMethodInsn(INVOKEVIRTUAL,
+								"java/io/PrintStream", "println",
+								"(Ljava/lang/String;)V");
+					};
+				};
 			}
 		};
 		cr.accept(cv, 0);

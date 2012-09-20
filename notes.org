@@ -1,0 +1,49 @@
+* 2 params:
+  #+begin_src java
+    mv.visitMethodInsn(INVOKESTATIC, "com/xored/mg42/runtime/Tracer", "getDefault", "()Lcom/xored/mg42/runtime/Tracer;");
+    mv.visitLdcInsn("CommandProcessor#blablabla(java.lang.String)");
+    mv.visitVarInsn(ALOAD, 0);
+    
+    mv.visitInsn(ICONST_2);
+    mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+    
+    mv.visitInsn(DUP);
+    mv.visitInsn(ICONST_0);
+    mv.visitVarInsn(ALOAD, 1);
+    mv.visitInsn(AASTORE);
+    
+    mv.visitInsn(DUP);
+    mv.visitInsn(ICONST_1);
+    mv.visitVarInsn(ILOAD, 2);
+    mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;");
+    mv.visitInsn(AASTORE);
+    
+    mv.visitMethodInsn(INVOKEVIRTUAL, "com/xored/mg42/runtime/Tracer", "methodStart", "(Ljava/lang/String;Ljava/lang/Object;[Ljava/lang/Object;)V");
+  #+end_src
+
+* 3 params:
+  #+begin_src java
+    mv.visitMethodInsn(INVOKESTATIC, "com/xored/mg42/runtime/Tracer", "getDefault", "()Lcom/xored/mg42/runtime/Tracer;");
+    mv.visitLdcInsn("CommandProcessor#vakavaka(java.lang.Object,java.lang.Object,java.lang.Object)");
+    mv.visitVarInsn(ALOAD, 0);
+    
+    mv.visitInsn(ICONST_3);
+    mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+    
+    mv.visitInsn(DUP);
+    mv.visitInsn(ICONST_0);
+    mv.visitVarInsn(ALOAD, 1);
+    mv.visitInsn(AASTORE);
+    
+    mv.visitInsn(DUP);
+    mv.visitInsn(ICONST_1);
+    mv.visitVarInsn(ALOAD, 2);
+    mv.visitInsn(AASTORE);
+    
+    mv.visitInsn(DUP);
+    mv.visitInsn(ICONST_2);
+    mv.visitVarInsn(ALOAD, 3);
+    mv.visitInsn(AASTORE);
+    
+    mv.visitMethodInsn(INVOKEVIRTUAL, "com/xored/mg42/runtime/Tracer", "methodStart", "(Ljava/lang/String;Ljava/lang/Object;[Ljava/lang/Object;)V");
+  #+end_src
