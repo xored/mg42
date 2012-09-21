@@ -29,4 +29,5 @@ public class Tracer {
 	public void methodEnd(String methodHandle, Object instance, Object[] args) {
 		System.out.println(String.format("Ended method %s", methodHandle));
 	}
+
 }

@@ -7,9 +7,7 @@ import java.security.ProtectionDomain;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.commons.AdviceAdapter;
 
 public class Transformer implements ClassFileTransformer, Opcodes {
 	private final Config config;
@@ -22,44 +20,23 @@ public class Transformer implements ClassFileTransformer, Opcodes {
 	public byte[] transform(ClassLoader loader, String className,
 			Class<?> classBeingRedefined, ProtectionDomain protectionDomain,
 			byte[] classfileBuffer) throws IllegalClassFormatException {
-		String configName = toConfigName(className);
-		if (!config.getTracers().containsKey(configName)) {
-			return classfileBuffer;
-		}
-
-		final ClassTrace classTrace = config.getTracers().get(configName);
-
-		ClassWriter cw = new ClassWriter(0);
-		ClassReader cr = new ClassReader(classfileBuffer);
-		ClassVisitor cv = new ClassVisitor(ASM4, cw) {
-			@Override
-			public MethodVisitor visitMethod(int access, String name,
-					String desc, String signature, String[] exceptions) {
-				MethodVisitor mv = super.visitMethod(access, name, desc,
-						signature, exceptions);
-
-				MethodTrace methodTrace = classTrace.find(name, desc);
-				if (methodTrace == null) {
-					return mv;
-				}
-				System.out.println(String.format("About to apply %s",
-						methodTrace));
-
-				return new AdviceAdapter(ASM4, mv, access, name, desc) {
-					protected void onMethodEnter() {
-						mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out",
-								"Ljava/io/PrintStream;");
-						mv.visitLdcInsn("hello");
-						mv.visitMethodInsn(INVOKEVIRTUAL,
-								"java/io/PrintStream", "println",
-								"(Ljava/lang/String;)V");
-					};
-				};
+		try {
+			String configName = toConfigName(className);
+			if (!config.getTracers().containsKey(configName)) {
+				return classfileBuffer;
 			}
-		};
-		cr.accept(cv, 0);
 
-		return cw.toByteArray();
+			final ClassTrace classTrace = config.getTracers().get(configName);
+
+			ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+			ClassReader cr = new ClassReader(classfileBuffer);
+			ClassVisitor cv = new TracingClassVisitor(cw, classTrace);
+			cr.accept(cv, ClassReader.EXPAND_FRAMES);
+			return cw.toByteArray();
+		} catch (Throwable e) {
+			e.printStackTrace();
+			throw new IllegalClassFormatException();
+		}
 	}
 
 	private static String toConfigName(String className) {

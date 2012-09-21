@@ -25,6 +25,11 @@ public class MethodTrace {
 				.on(",").join(args), onEnter, onExit);
 	}
 
+	public String toHandle(String className) {
+		return String.format("%s#%s(%s)", className, method, Joiner.on(",")
+				.join(args));
+	}
+
 	public final String method;
 	public final String[] args;
 	public final String onEnter;
