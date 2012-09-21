@@ -21,6 +21,6 @@ public interface MG42Runtime {
 	public static final Method methodStart = Method
 			.getMethod("void methodStart(String, Object, Object[])");
 	public static final Method methodEnd = Method
-			.getMethod("void methodEnd(String, Object, Object[])");
+			.getMethod("void methodEnd(Object, String, Object, Object[])");
 
 }

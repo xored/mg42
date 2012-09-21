@@ -26,8 +26,10 @@ public class Tracer {
 		System.out.println(String.format("Started method %s", methodHandle));
 	}
 
-	public void methodEnd(String methodHandle, Object instance, Object[] args) {
-		System.out.println(String.format("Ended method %s", methodHandle));
+	public void methodEnd(Object result, String methodHandle, Object instance,
+			Object[] args) {
+		System.out.println(String.format("Ended method %s, result: %s",
+				methodHandle, result));
 	}
 
 }

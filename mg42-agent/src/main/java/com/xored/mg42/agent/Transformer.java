@@ -1,5 +1,6 @@
 package com.xored.mg42.agent;
 
+import java.io.File;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
@@ -8,6 +9,8 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
+
+import com.google.common.io.Files;
 
 public class Transformer implements ClassFileTransformer, Opcodes {
 	private final Config config;
@@ -32,6 +35,8 @@ public class Transformer implements ClassFileTransformer, Opcodes {
 			ClassReader cr = new ClassReader(classfileBuffer);
 			ClassVisitor cv = new TracingClassVisitor(cw, classTrace);
 			cr.accept(cv, ClassReader.EXPAND_FRAMES);
+			Files.write(classfileBuffer, new File(
+					"/Users/ivaninozemtsev/Temp/CommandProcessor.java"));
 			return cw.toByteArray();
 		} catch (Throwable e) {
 			e.printStackTrace();
