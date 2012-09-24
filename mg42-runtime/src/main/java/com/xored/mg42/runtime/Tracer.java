@@ -1,5 +1,8 @@
 package com.xored.mg42.runtime;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Tracer {
 	/**
 	 * Invoked on method start
@@ -12,15 +15,28 @@ public class Tracer {
 	 * @param args
 	 *            method arguments
 	 */
-	public static void methodStart(String methodHandle, Object instance,
+	public void methodStart(int groupId, int traceId, Object instance,
 			Object[] args) {
-		System.out.println(String.format("Started method %s", methodHandle));
+		System.out.println(String.format("Started method %d:%d", groupId,
+				traceId));
+		if (traceGroups.containsKey(groupId)) {
+			System.out.println(String.format(
+					"Client code returned %s",
+					traceGroups.get(groupId).methodEnter(traceId, instance,
+							args)));
+		}
+
 	}
 
-	public static void methodEnd(Object result, String methodHandle,
+	public void methodEnd(Object result, int groupId, int traceId,
 			Object instance, Object[] args) {
-		System.out.println(String.format("Ended method %s, result: %s",
-				methodHandle, result));
+		System.out.println(String.format("Ended method %d:%d, result: %s",
+				groupId, traceId, result));
 	}
 
+	private static Map<Integer, TracerGroup> traceGroups = new HashMap<Integer, TracerGroup>();
+
+	public static void addGroup(int groupId, TracerGroup group) {
+		traceGroups.put(groupId, group);
+	}
 }

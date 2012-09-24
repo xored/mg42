@@ -6,12 +6,9 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class Config {
@@ -24,13 +21,16 @@ public class Config {
 				.create(args.get(ARG_OUTPUT)) : null;
 		port = args.containsKey(ARG_PORT) ? Integer
 				.parseInt(args.get(ARG_PORT)) : -1;
-		tracers = args.containsKey(ARG_TRACERS) ? readTracers(args
-				.get(ARG_TRACERS)) : new HashMap<String, ClassTrace>();
+		handlers = args.containsKey(ARG_TRACERS) ? readTracers(args
+				.get(ARG_TRACERS)) : new HandlerGroups(
+				new HashMap<String, HandlerGroup>());
+		sources = handlers.calcSources();
 	}
 
 	private URI output;
 	private int port;
-	private Map<String, ClassTrace> tracers;
+	public final HandlerGroups handlers;
+	public final SourceClasses sources;
 
 	public URI getOutput() {
 		return output;
@@ -38,10 +38,6 @@ public class Config {
 
 	public int getPort() {
 		return port;
-	}
-
-	public Map<String, ClassTrace> getTracers() {
-		return tracers;
 	}
 
 	public static Config fromArgs(String argStr) throws IOException {
@@ -61,17 +57,11 @@ public class Config {
 		return new Config(result);
 	}
 
-	private static Map<String, ClassTrace> readTracers(String path)
-			throws IOException {
-		JsonObject object = new JsonParser().parse(
-				CharStreams.toString(new InputStreamReader(new FileInputStream(
-						path), Charsets.UTF_8))).getAsJsonObject();
-		Map<String, ClassTrace> result = new HashMap<String, ClassTrace>();
-		for (Entry<String, JsonElement> entry : object.entrySet()) {
-			result.put(entry.getKey(), ClassTrace.fromJson(entry.getKey(),
-					entry.getValue().getAsJsonArray()));
-		}
-		return result;
+	private static HandlerGroups readTracers(String path) throws IOException {
+		return HandlerGroups.fromJson(new JsonParser()
+				.parse(CharStreams.toString(new InputStreamReader(
+						new FileInputStream(path), Charsets.UTF_8)))
+				.getAsJsonObject().get("tracerGroups").getAsJsonArray());
 	}
 
 }
