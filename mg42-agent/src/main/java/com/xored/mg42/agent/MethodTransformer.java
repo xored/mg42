@@ -50,11 +50,10 @@ final class MethodTransformer extends AdviceAdapter implements MG42Runtime {
 		if (trace.onEnter == null) {
 			return;
 		}
-		invokeStatic(Tracer, getDefault);
 		push(methodHandle);
 		loadThis();
 		loadArgArray();
-		invokeVirtual(Tracer, methodStart);
+		invokeStatic(Tracer, methodStart);
 	}
 
 	private void onFinally(int opcode) {
@@ -63,12 +62,10 @@ final class MethodTransformer extends AdviceAdapter implements MG42Runtime {
 		} else {
 			push((Type) null);
 		}
-		invokeStatic(Tracer, getDefault);
-		swap(); // swap exception object with tracer instance
 		push(methodHandle);
 		loadThis();
 		loadArgArray();
-		invokeVirtual(Tracer, methodEnd);
+		invokeStatic(Tracer, methodEnd);
 	}
 
 }

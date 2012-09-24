@@ -24,6 +24,7 @@ public class Transformer implements ClassFileTransformer, Opcodes {
 			Class<?> classBeingRedefined, ProtectionDomain protectionDomain,
 			byte[] classfileBuffer) throws IllegalClassFormatException {
 		try {
+			System.out.println(className);
 			String configName = toConfigName(className);
 			if (!config.getTracers().containsKey(configName)) {
 				return classfileBuffer;

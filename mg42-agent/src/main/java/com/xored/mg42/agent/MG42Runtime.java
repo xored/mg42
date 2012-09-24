@@ -15,9 +15,6 @@ public interface MG42Runtime {
 	public static final Type Tracer = Type.getObjectType(TRACER_DESCRIPTOR);
 	static final String TRACER_QNAME = Tracer.getClassName();
 
-	public static final Method getDefault = Method.getMethod(String.format(
-			"%s getDefault()", TRACER_QNAME));
-
 	public static final Method methodStart = Method
 			.getMethod("void methodStart(String, Object, Object[])");
 	public static final Method methodEnd = Method
