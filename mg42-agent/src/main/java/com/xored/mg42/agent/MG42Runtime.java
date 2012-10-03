@@ -16,8 +16,8 @@ public interface MG42Runtime {
 	static final String TRACER_QNAME = Tracer.getClassName();
 
 	public static final Method methodStart = Method
-			.getMethod("void methodStart(String, Object, Object[])");
+			.getMethod("void methodStart(int, int, Object, Object[])");
 	public static final Method methodEnd = Method
-			.getMethod("void methodEnd(Object, String, Object, Object[])");
+			.getMethod("void methodEnd(Object, int, int, Object, Object[])");
 
 }

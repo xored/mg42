@@ -10,4 +10,15 @@ public class SourceClass {
 
 	public final Type type;
 	public final SourceMethod[] methods;
+
+	public SourceMethod find(String methodName, String signature) {
+		for (SourceMethod sm : methods) {
+			if (sm.matches(methodName, signature)) {
+				return sm;
+			}
+		}
+
+		return null;
+	}
+
 }

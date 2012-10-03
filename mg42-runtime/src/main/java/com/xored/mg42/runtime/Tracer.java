@@ -15,23 +15,22 @@ public class Tracer {
 	 * @param args
 	 *            method arguments
 	 */
-	public void methodStart(int groupId, int traceId, Object instance,
+	public static void methodStart(int classId, int traceId, Object instance,
 			Object[] args) {
-		System.out.println(String.format("Started method %d:%d", groupId,
+		System.out.println(String.format("Started method %d:%d", classId,
 				traceId));
-		if (traceGroups.containsKey(groupId)) {
+		if (traceGroups.containsKey(classId)) {
 			System.out.println(String.format(
 					"Client code returned %s",
-					traceGroups.get(groupId).methodEnter(traceId, instance,
+					traceGroups.get(classId).methodEnter(traceId, instance,
 							args)));
 		}
-
 	}
 
-	public void methodEnd(Object result, int groupId, int traceId,
+	public static void methodEnd(Object result, int classId, int traceId,
 			Object instance, Object[] args) {
 		System.out.println(String.format("Ended method %d:%d, result: %s",
-				groupId, traceId, result));
+				classId, traceId, result));
 	}
 
 	private static Map<Integer, TracerGroup> traceGroups = new HashMap<Integer, TracerGroup>();
