@@ -25,12 +25,11 @@ public class HandlerGroup {
 
 	public static Type getType(String methodQname) {
 		int sharpIndex = methodQname.indexOf('#');
-		return getTypeByQName(methodQname.substring(0, sharpIndex).replace('.',
-				'/'));
+		return getTypeByQName(methodQname.substring(0, sharpIndex));
 	}
 
 	public static Type getTypeByQName(String typeName) {
-		return Type.getObjectType(typeName);
+		return Type.getObjectType(typeName.replace('.', '/'));
 	}
 
 	public static Method getMethod(String methodQname) {
@@ -51,6 +50,10 @@ public class HandlerGroup {
 		return classes.get(internalName);
 	}
 
+	public boolean isEntryMethod(String name, String desc) {
+		return MethodUtils.matches(entryMethod, name, desc);
+	}
+
 	public static HandlerGroup fromJson(int firstClassId, JsonObject object) {
 		Map<String, HandlerClass> children = new HashMap<String, HandlerClass>();
 		int classId = firstClassId;
@@ -61,7 +64,7 @@ public class HandlerGroup {
 					entry.getKey(), entry.getValue().getAsJsonObject());
 			classId++;
 			firstMethodId += child.tracers.length;
-			children.put(child.type.getClassName(), child);
+			children.put(child.type.getInternalName(), child);
 		}
 		return new HandlerGroup(object.get("entryPoint").getAsString(),
 				children);

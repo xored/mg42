@@ -17,7 +17,10 @@ public interface MG42Runtime {
 
 	public static final Method methodStart = Method
 			.getMethod("void methodStart(int, int, Object, Object[])");
+
 	public static final Method methodEnd = Method
 			.getMethod("void methodEnd(Object, int, int, Object, Object[])");
 
+	public static final Method methodAddGroup = Method
+			.getMethod("void addGroup(int, com.xored.mg42.runtime.TracerGroup)");
 }

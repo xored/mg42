@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Tracer {
+
+	private static Map<Integer, TracerGroup> traceGroups = new HashMap<Integer, TracerGroup>();
+
 	/**
 	 * Invoked on method start
 	 * 
@@ -32,8 +35,6 @@ public class Tracer {
 		System.out.println(String.format("Ended method %d:%d, result: %s",
 				classId, traceId, result));
 	}
-
-	private static Map<Integer, TracerGroup> traceGroups = new HashMap<Integer, TracerGroup>();
 
 	public static void addGroup(int groupId, TracerGroup group) {
 		traceGroups.put(groupId, group);
