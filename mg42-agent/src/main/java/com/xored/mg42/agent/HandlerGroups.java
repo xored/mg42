@@ -49,7 +49,7 @@ public class HandlerGroups {
 
 					Map<String, SourceMethod> sourceTypeMap = sources
 							.get(sourceType);
-					if (!sourceTypeMap.containsKey(sourceMethod)) {
+					if (!sourceTypeMap.containsKey(method)) {
 						sourceTypeMap.put(method,
 								new SourceMethod(sourceMethod));
 					}
