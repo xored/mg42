@@ -16,7 +16,7 @@
   - *start* -- If true, start tracing immediately, otherwise wait for =start= command via =port=.
   - *config* -- Path to a file with instrumentation description (see below)
   Example: 
-  #+_src bash
+  #+BEGIN_SRC bash
   java ...  -javaagent:mg42.jar=out=tcp://localhost:1234=port=4750=start=true=config=./instrumentation.json
   #+END_SRC
 
@@ -146,7 +146,7 @@
   #+END_SRC
 
   When agent is launched with config from a section above, then it will transform classes in the way shown below.
-  =MyHandler=:
+  MyHandler:
   #+BEGIN_SRC java
     package com.xored.programspy;
         
@@ -183,7 +183,7 @@
     
   #+END_SRC
 
-  =Program=:
+  Program:
   #+BEGIN_SRC java
     public class Program {
         public static void main(String[] args) throws IOException {
@@ -231,3 +231,4 @@
     
   #+END_SRC
 
+That's it
