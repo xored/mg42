@@ -1,18 +1,24 @@
 * Overview
-  Java agent for tracing enter/exit from methods with an extra info. Consumers of this library should be able to easily specify which method starts/ends they are interested in and contribute some client code which can collect extra information. The resulting object flow is passed to output stream (stdout, file, socket). Optionally agent can listen to commands via local port like start/stop capturing.
+  Java library for tracing enter/exit from methods with an extra info. Consumers of this library should be able to easily specify which method starts/ends they are interested in and contribute some client code which can collect extra information. The resulting object flow is passed to output stream (stdout, file, socket). Optionally it can listen to commands via local port like start/stop capturing.
 
   The scope of this project is only to collect information from application, not alter it (though technically some side effects are possible). If some application projects require to alter the application behavior, they have to use other libraries to reach this goal.
 
   Since there's no universal way to automatically serialize all arguments, it is the responsibility of client's code to extract required information from method arguments.
 
+* Agent and Runtime
+  The library consists of two big parts:
+  - *agent* reads instrumentation description and instruments classes to insert calls to methods from *runtime*. Also it automatically puts the runtime into process's classpath.
+  - *runtime* gets notification from instrumented methods, calls client code and sends the results to specified output.
+
 * Agent arguments
   - *out* -- URI where to send an info. Examples: *tcp://localhost:1234*, *file:/home/user/out.txt*. If nothing specified, sends output to =stdout=.
   - *port* -- Local port to listen for commands. Commands are plain UTF-8 strings (=start= or =stop=).
   - *start* -- If true, start tracing immediately, otherwise wait for =start= command via =port=.
+  - *config* -- Path to a file with instrumentation description (see below)
   Example: 
   #+_src bash
-  java ...  -javaagent:mg42.jar=out=tcp://localhost:1234=port=4750=start=true
-  #+end_src
+  java ...  -javaagent:mg42.jar=out=tcp://localhost:1234=port=4750=start=true=config=./instrumentation.json
+  #+END_SRC
 
 * Object encoding
   Until we hit performance issues we are going to use JSON objects and Google Gson library to work with objects. Thus, agent sends JSON-encoded objects separated with newline char (does not make sense for sockets, but convenient for stdout and files to separate objects).
@@ -35,28 +41,193 @@
   #+END_SRC
   
 * Registering handlers
-  The exact spec requires research on what we can do with Java agents, but ideally client should be able just to write class like this:
-  #+BEGIN_SRC java
-      @MG42
-      class JobHandler
-      {
-          @OnStart(
-            cls=org.eclipse.core.runtime.jobs.Job.class,
-            method="run",
-            args=null
-          )
-          public static Object onJobStart(Member method, Object obj, Object[] args) {
-              return "Started job " + ((Job)obj).getName();
-          }
+  Here are the main terms used in describing configuration:
+  - *Source method* -- method in instrumented application we are interested in
+  - *Entry point* -- method where handlers are instanciated and registered. Therefore, clients can make sure that handler classes can be loaded successfully and can resolve its dependencies.
+  - *Handler class* -- class containing methods which will be associated with events from source application's methods. Therefore, handlers for related methods can be grouped together
+  - *Handler method* -- method which should be invoked at some point of source application's method.
+  - *Point* -- where to put an invocation of handler method inside source method. Currently supported points are =enter= and =exit=. The point defines a signature for the handler method:
+    - *enter* -- =Object enterHandler(Object instance, Object[] args)=
+    - *exit* -- =Object exitHandler(Object resultOrException, Object instance, Object[] args)=
+
+  The configuration of entry points and handlers is in JSON format and has the following structure:
+  #+BEGIN_SRC js
+    {
+      "entryPoints": 
+      [
+        {
+          // Fully qualified class name, #, method name, 
+          //  ( type of argument1, type of argument2 ... )
+          // If argument type is not fully qualified, then
+          // it is assumed that it is from java.lang package
+          "entryPoint": "com.xored.program.Program#main(String[])",
+          "handlers" : {
+            //Fully qualified Handler class name
+            "com.xored.programspy.MyHandler" : {
+              // Handler method name. Since signature of
+              // handler method is predefined, there's 
+              // no need to specify arguments
+              "handlePromptEnter" : {
+                "point" : "enter",
+                // Method to handle in the same format 
+                //as for entry point
+                "method" : "com.xored.program.Program#prompt()"
+              },
     
-          @OnEnd(
-                   cls=org.eclipse.core.runtime.jobs.Job.class,
-                   method="setUser",
-                   args={ Boolean.class }
-          )
-          public static Object setUser(Member method, Object obj, Object[] args) {
-              return String.format("Job %s setUser %b", ((Job)obj).getName(), args[0]);
+              //One more handler method
+              "handleProcessExit" : {
+                "point" : "exit",
+                "method" : "com.xored.program.Program#process(String cmd)"
+              }
+            }
           }
-      }
+        }
+      ]
+    }
   #+END_SRC
-  For now let's consider that once agent meets a class annotated with =@MG42=, it finds and instruments all classes used from the handler.
+
+* Transformation example
+  Suppose we have the following program:
+  #+BEGIN_SRC java
+    package com.xored.program;
+    
+    import java.io.BufferedReader;
+    import java.io.IOException;
+    import java.io.InputStreamReader;
+    
+    public class Program {
+        public static void main(String[] args) throws IOException {
+            while (true) {
+                prompt();
+                try {
+                    System.out.println(process(in.readLine()));
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
+    
+        private static String process(String command) {
+            return String.format("%s processed", command);
+        }
+    
+        private static BufferedReader in = new BufferedReader(
+                new InputStreamReader(System.in));
+    
+        private static String readCommand() throws IOException {
+            return in.readLine();
+        }
+    
+        private static void prompt() {
+            System.out.print("$ ");
+            System.out.flush();
+        }
+    }
+  #+END_SRC
+
+  And we have our code which we want to execute when program enters into =prompt= method and exits from =process= method:
+  #+BEGIN_SRC java
+    package com.xored.programspy;
+    
+    public class MyHandler
+    {
+        public Object handlePromptEnter(Object instance, Object[] args) {
+            return "Prompt is about to print";
+        }
+    
+        public Object handleProcessExit(Object result, Object instance, Object[] args) {
+            String command = (String) args[0];
+            if(result instanceof Exception) {
+                return String.format("%s crashed", command);
+            }
+            return String.format("%s result: %s", command, result);
+        }
+    }
+  #+END_SRC
+
+  When agent is launched with config from a section above, then it will transform classes in the way shown below.
+  =MyHandler=:
+  #+BEGIN_SRC java
+    package com.xored.programspy;
+        
+    public class MyHandler implements IHandler
+    {
+        @Override 
+        public Object methodEnter(int methodId, Object instance, Object[] args) {
+            switch(methodId) {
+            case 0: return handlePromptEnter(instance, args);
+            }
+            return null;
+        }
+    
+        @Override
+        public Object methodExit(int methodId, Object result, Object instance, Object[] args) {
+            switch(methodId) {
+            case 1: return handleProcessExit(result, instance, args);
+            }
+            return null;
+        }
+    
+        public Object handlePromptEnter(Object instance, Object[] args) {
+            return "Prompt is about to print";
+        }
+        
+        public Object handleProcessExit(Object result, Object instance, Object[] args) {
+            String command = (String) args[0];
+            if(result instanceof Exception) {
+                return String.format("%s crashed", command);
+            }
+            return String.format("%s result: %s", command, result);
+        }
+    }
+    
+  #+END_SRC
+
+  =Program=:
+  #+BEGIN_SRC java
+    public class Program {
+        public static void main(String[] args) throws IOException {
+            MG42Runtime.addHandler(0 /* handler class index */, new MySpy());
+            while (true) {
+                prompt();
+                try {
+                    System.out.println(process(in.readLine()));
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
+        
+        private static void prompt() {
+            MG42Runtime.handleEnter(
+                                    0 /* handler class */, 
+                                    0 /* handler method in class */,
+                                    null /* no 'this' for static method */,
+                                    new Object[0] /* no args */
+                                    )
+    
+            System.out.print("$ ");
+            System.out.flush();
+        }
+    
+        private static String process(String command) {
+            try {
+                String result = String.format("%s processed", command);
+                MG42Runtime.handleExit(0, 1, result, null, new Object[] { command });
+                return result;
+            } catch(Exception exception) {
+                MG42Runtime.handleExit(0, 1, exception,  null, new Object[] { command });
+            }
+        }
+    
+    
+        private static BufferedReader in = 
+            new BufferedReader(new InputStreamReader(System.in));
+        
+        private static String readCommand() throws IOException {
+            return in.readLine();
+        }
+    }
+    
+  #+END_SRC
+
