@@ -25,9 +25,9 @@ public interface MG42Runtime {
 			.getMethod("void addGroup(int, com.xored.mg42.runtime.TracerGroup)");
 
 	public final static String interfaceTracerGroup = "com/xored/mg42/runtime/TracerGroup";
-	public final static String methodEnterTGName = "mg42MethodEnter";
-	public final static String methodEnterTGSignature = "(ILjava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;";
-	public final static String methodExitTGName = "mg42MethodExit";
-	public final static String methodExitTGSignature = "(ILjava/lang/Object;[Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;";
+	public final static String methodProxyTGName = "mg42MethodProxy";
+	public final static String methodProxyTGSignature = "(ILjava/lang/Object;[Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;";
 
+	public final static String pointEnterSignature = "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;";
+	public final static String pointExitSignature = "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;";
 }

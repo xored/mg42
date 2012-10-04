@@ -24,9 +24,9 @@ public class Tracer {
 				traceId));
 		if (traceGroups.containsKey(classId)) {
 			System.out.println(String.format(
-					"Client code returned %s",
-					traceGroups.get(classId).mg42MethodEnter(traceId, instance,
-							args)));
+					"Client code returned: %s",
+					traceGroups.get(classId).mg42MethodProxy(traceId, instance,
+							args, null)));
 		}
 	}
 
@@ -34,6 +34,12 @@ public class Tracer {
 			Object instance, Object[] args) {
 		System.out.println(String.format("Ended method %d:%d, result: %s",
 				classId, traceId, result));
+		if (traceGroups.containsKey(classId)) {
+			System.out.println(String.format(
+					"Client code returned: %s",
+					traceGroups.get(classId).mg42MethodProxy(traceId, instance,
+							args, result)));
+		}
 	}
 
 	public static void addGroup(int groupId, TracerGroup group) {

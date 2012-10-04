@@ -12,6 +12,9 @@ import com.google.common.io.CharStreams;
 import com.google.gson.JsonParser;
 
 public class Config {
+	public static final String ON_ENTER_POINT = "enter";
+	public static final String ON_EXIT_POINT = "exit";
+
 	private static final String ARG_OUTPUT = "out";
 	private static final String ARG_PORT = "port";
 	private static final String ARG_TRACERS = "tracers";

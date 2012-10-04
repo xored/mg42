@@ -5,17 +5,15 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 
-final class SourceMethodTransformer extends AdviceAdapter implements MG42Runtime {
-
-	public static final String ON_ENTER = "enter";
-	public static final String ON_EXIT = "exit";
+final class SourceMethodTransformer extends AdviceAdapter implements
+		MG42Runtime {
 
 	private final SourceMethod sourceMethod;
 
 	private final Label startFinally = new Label();
 
-	SourceMethodTransformer(SourceMethod sourceMethod, MethodVisitor mv, int access,
-			String name, String desc) {
+	SourceMethodTransformer(SourceMethod sourceMethod, MethodVisitor mv,
+			int access, String name, String desc) {
 		super(ASM4, mv, access, name, desc);
 		this.sourceMethod = sourceMethod;
 	}
@@ -73,10 +71,10 @@ final class SourceMethodTransformer extends AdviceAdapter implements MG42Runtime
 	}
 
 	private HandlerMethod getOnEnter() {
-		return sourceMethod.points.get(ON_ENTER);
+		return sourceMethod.points.get(Config.ON_ENTER_POINT);
 	}
 
 	private HandlerMethod getOnExit() {
-		return sourceMethod.points.get(ON_EXIT);
+		return sourceMethod.points.get(Config.ON_EXIT_POINT);
 	}
 }
