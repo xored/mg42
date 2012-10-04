@@ -25,7 +25,7 @@ public class Tracer {
 		if (traceGroups.containsKey(classId)) {
 			System.out.println(String.format(
 					"Client code returned %s",
-					traceGroups.get(classId).methodEnter(traceId, instance,
+					traceGroups.get(classId).mg42MethodEnter(traceId, instance,
 							args)));
 		}
 	}
