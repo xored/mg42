@@ -1,10 +1,13 @@
 package com.xored.mg42.agent;
 
+import static com.google.common.collect.ObjectArrays.concat;
+
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class HandlerClassTransformer extends ClassTransformer {
+public class HandlerClassTransformer extends ClassTransformer implements
+		MG42Runtime {
 
 	private final static String objDesc = "Ljava/lang/Object;";
 	private final static String objArrayDesc = "[Ljava/lang/Object;";
@@ -25,15 +28,8 @@ public class HandlerClassTransformer extends ClassTransformer {
 	@Override
 	public void visit(int version, int access, String name, String signature,
 			String superName, String[] interfaces) {
-
-		String[] modifiedInterfaces = new String[interfaces.length + 1];
-		for (int i = 0; i < interfaces.length; i++) {
-			modifiedInterfaces[i] = interfaces[i];
-		}
-		modifiedInterfaces[modifiedInterfaces.length - 1] = MG42Runtime.interfaceTracerGroup;
-
 		super.visit(version, access, name, signature, superName,
-				modifiedInterfaces);
+				concat(interfaces, interfaceTracerGroup));
 	}
 
 	@Override
@@ -46,6 +42,10 @@ public class HandlerClassTransformer extends ClassTransformer {
 		MethodVisitor mv = cv.visitMethod(ACC_PUBLIC,
 				MG42Runtime.methodProxyTGName,
 				MG42Runtime.methodProxyTGSignature, null, null);
+		//
+		// GeneratorAdapter mv = new GeneratorAdapter(ACC_PUBLIC,
+		// methodMG42Proxy,
+		// null, null, cv);
 		mv.visitCode();
 		Label labelmetodStart = new Label();
 		mv.visitLabel(labelmetodStart);

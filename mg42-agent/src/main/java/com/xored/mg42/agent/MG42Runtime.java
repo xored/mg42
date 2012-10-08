@@ -27,6 +27,8 @@ public interface MG42Runtime {
 	public final static String interfaceTracerGroup = "com/xored/mg42/runtime/TracerGroup";
 	public final static String methodProxyTGName = "mg42MethodProxy";
 	public final static String methodProxyTGSignature = "(ILjava/lang/Object;[Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;";
+	public final static Method methodMG42Proxy = new Method(methodProxyTGName,
+			methodProxyTGSignature);
 
 	public final static String pointEnterSignature = "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;";
 	public final static String pointExitSignature = "(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;";
