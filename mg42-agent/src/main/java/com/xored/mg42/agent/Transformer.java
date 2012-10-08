@@ -1,5 +1,9 @@
 package com.xored.mg42.agent;
 
+import static org.objectweb.asm.ClassReader.EXPAND_FRAMES;
+import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
+import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
@@ -78,10 +82,11 @@ public class Transformer implements ClassFileTransformer, Opcodes {
 
 	private static final byte[] applyTransform(byte[] classfile,
 			ClassTransformer transformer) {
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+
+		ClassWriter cw = new ClassWriter(COMPUTE_FRAMES | COMPUTE_MAXS);
 		ClassReader cr = new ClassReader(classfile);
 		transformer.setWriter(cw);
-		cr.accept(transformer, ClassReader.EXPAND_FRAMES);
+		cr.accept(transformer, EXPAND_FRAMES);
 		return cw.toByteArray();
 	}
 }

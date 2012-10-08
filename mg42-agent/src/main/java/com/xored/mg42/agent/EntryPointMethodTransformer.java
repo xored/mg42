@@ -2,7 +2,6 @@ package com.xored.mg42.agent;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.AdviceAdapter;
-import org.objectweb.asm.commons.Method;
 
 public class EntryPointMethodTransformer extends AdviceAdapter implements
 		MG42Runtime {
@@ -22,8 +21,7 @@ public class EntryPointMethodTransformer extends AdviceAdapter implements
 			push(handlerClass.classId);
 			newInstance(handlerClass.type);
 			dup();
-			invokeConstructor(handlerClass.type,
-					Method.getMethod("void <init> ()"));
+			invokeConstructor(handlerClass.type, defaultConstructor);
 			invokeStatic(Tracer, methodAddGroup);
 		}
 	}

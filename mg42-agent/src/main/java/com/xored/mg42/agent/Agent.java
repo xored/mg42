@@ -17,7 +17,10 @@ public class Agent {
 		inst.appendToBootstrapClassLoaderSearch(extractRuntimeJar());
 		Config config = Config.fromArgs(args);
 		inst.addTransformer(new Transformer(config), true);
-		inst.retransformClasses(classesToRetransform(config));
+		Class<?>[] toRetransform = classesToRetransform(config);
+		if (toRetransform.length > 0) {
+			inst.retransformClasses(toRetransform);
+		}
 	}
 
 	public static Class<?>[] classesToRetransform(Config config)
