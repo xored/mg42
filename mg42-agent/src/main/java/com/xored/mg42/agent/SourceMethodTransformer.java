@@ -50,7 +50,7 @@ final class SourceMethodTransformer extends AdviceAdapter implements
 			return;
 		}
 		push(getOnEnter().parent.classId);
-		push(getOnEnter().methodId);
+		push(getOnEnter().id);
 		loadThis();
 		loadArgArray();
 		invokeStatic(Tracer, methodStart);
@@ -63,7 +63,7 @@ final class SourceMethodTransformer extends AdviceAdapter implements
 			box(sourceMethod.method.getReturnType());
 		}
 		push(getOnExit().parent.classId);
-		push(getOnExit().methodId);
+		push(getOnExit().id);
 		loadThis();
 		loadArgArray();
 		invokeStatic(Tracer, methodEnd);

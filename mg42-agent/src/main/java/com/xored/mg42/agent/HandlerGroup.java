@@ -57,13 +57,11 @@ public class HandlerGroup {
 	public static HandlerGroup fromJson(int firstClassId, JsonObject object) {
 		Map<String, HandlerClass> children = new HashMap<String, HandlerClass>();
 		int classId = firstClassId;
-		int firstMethodId = 0;
 		for (Entry<String, JsonElement> entry : object.get("tracers")
 				.getAsJsonObject().entrySet()) {
-			HandlerClass child = HandlerClass.fromJson(classId, firstMethodId,
-					entry.getKey(), entry.getValue().getAsJsonObject());
+			HandlerClass child = HandlerClass.fromJson(classId, entry.getKey(),
+					entry.getValue().getAsJsonObject());
 			classId++;
-			firstMethodId += child.tracers.length;
 			children.put(child.type.getInternalName(), child);
 		}
 		return new HandlerGroup(object.get("entryPoint").getAsString(),

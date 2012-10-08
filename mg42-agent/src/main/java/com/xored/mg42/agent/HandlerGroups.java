@@ -35,7 +35,7 @@ public class HandlerGroups {
 
 		for (HandlerGroup group : groups.values()) {
 			for (HandlerClass hc : group.classes.values()) {
-				for (HandlerMethod hm : hc.tracers) {
+				for (HandlerMethod hm : hc.handlers) {
 					String method = hm.callee;
 					String point = hm.point;
 					String sourceType = HandlerGroup.getType(method)

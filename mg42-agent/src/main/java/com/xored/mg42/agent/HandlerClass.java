@@ -1,7 +1,9 @@
 package com.xored.mg42.agent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.objectweb.asm.Type;
@@ -13,19 +15,25 @@ public class HandlerClass {
 	public HandlerClass(int classId, String qname, HandlerMethod[] tracers) {
 		this.classId = classId;
 		this.type = HandlerGroup.getTypeByQName(qname);
-		this.tracers = tracers;
+		this.handlers = tracers;
 		for (HandlerMethod method : tracers) {
 			method.parent = this;
+			methodsMap.put(method.methodName, method);
 		}
 	}
 
 	public final int classId;
 	public final Type type;
-	public final HandlerMethod[] tracers;
+	public final HandlerMethod[] handlers;
+	private final Map<String, HandlerMethod> methodsMap = new HashMap<String, HandlerMethod>();
 
-	public static HandlerClass fromJson(int classId, int firstMethodId,
-			String qname, JsonObject methods) {
-		int methodId = firstMethodId;
+	public HandlerMethod find(String name) {
+		return methodsMap.get(name);
+	}
+
+	public static HandlerClass fromJson(int classId, String qname,
+			JsonObject methods) {
+		int methodId = 0;
 		List<HandlerMethod> children = new ArrayList<HandlerMethod>();
 		for (Entry<String, JsonElement> entry : methods.entrySet()) {
 			children.add(HandlerMethod.fromJson(methodId, entry.getKey(), entry

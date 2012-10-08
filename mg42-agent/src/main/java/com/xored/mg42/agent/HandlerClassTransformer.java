@@ -23,6 +23,7 @@ public class HandlerClassTransformer extends ClassTransformer implements
 
 	public HandlerClassTransformer(HandlerClass handlerClass) {
 		this.handlerClass = handlerClass;
+		this.accessFlags = new int[handlerClass.handlers.length];
 	}
 
 	@Override
@@ -30,6 +31,18 @@ public class HandlerClassTransformer extends ClassTransformer implements
 			String superName, String[] interfaces) {
 		super.visit(version, access, name, signature, superName,
 				concat(interfaces, interfaceTracerGroup));
+	}
+
+	private int[] accessFlags;
+
+	@Override
+	public MethodVisitor visitMethod(int access, String name, String desc,
+			String signature, String[] exceptions) {
+		HandlerMethod method = handlerClass.find(name);
+		if (method != null) {
+			accessFlags[method.id] = access;
+		}
+		return super.visitMethod(access, name, desc, signature, exceptions);
 	}
 
 	@Override
@@ -54,21 +67,26 @@ public class HandlerClassTransformer extends ClassTransformer implements
 		// load tracer argument and generate switch statement
 		mv.visitVarInsn(ILOAD, 1);
 		Label switchLabel = new Label();
-		int[] caseValues = new int[handlerClass.tracers.length];
-		Label[] caseLabels = new Label[handlerClass.tracers.length];
-		for (int i = 0; i < handlerClass.tracers.length; i++) {
-			caseValues[i] = handlerClass.tracers[i].methodId;
+		int[] caseValues = new int[handlerClass.handlers.length];
+		Label[] caseLabels = new Label[handlerClass.handlers.length];
+		for (int i = 0; i < handlerClass.handlers.length; i++) {
+			caseValues[i] = handlerClass.handlers[i].id;
 			caseLabels[i] = new Label();
 		}
 		mv.visitLookupSwitchInsn(switchLabel, caseValues, caseLabels);
 
 		// generate switch cases
 		for (int i = 0; i < caseValues.length; i++) {
+			HandlerMethod current = handlerClass.handlers[i];
+			boolean isStatic = (accessFlags[i] & ACC_STATIC) != 0;
 			mv.visitLabel(caseLabels[i]);
 			mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
 			// Load arguments, for exit point first argument is return value
 			String handlerSignature;
-			if (Config.ON_EXIT_POINT.equals(handlerClass.tracers[i].point)) {
+			if (!isStatic) {
+				mv.visitVarInsn(ALOAD, 0); // load 'this' on stack
+			}
+			if (Config.ON_EXIT_POINT.equals(current.point)) {
 				mv.visitVarInsn(ALOAD, 4);
 				handlerSignature = MG42Runtime.pointExitSignature;
 			} else {
@@ -77,9 +95,10 @@ public class HandlerClassTransformer extends ClassTransformer implements
 			mv.visitVarInsn(ALOAD, 2);
 			mv.visitVarInsn(ALOAD, 3);
 			// Invoke handler
-			mv.visitMethodInsn(INVOKESTATIC,
-					handlerClass.type.getInternalName(),
-					handlerClass.tracers[i].handler, handlerSignature);
+			int instruction = isStatic ? INVOKESTATIC : INVOKEVIRTUAL;
+			mv.visitMethodInsn(instruction,
+					handlerClass.type.getInternalName(), current.methodName,
+					handlerSignature);
 			mv.visitInsn(ARETURN);
 		}
 
@@ -105,5 +124,4 @@ public class HandlerClassTransformer extends ClassTransformer implements
 		mv.visitMaxs(2, 5);
 		mv.visitEnd();
 	}
-
 }
