@@ -24,8 +24,6 @@ public class Transformer implements ClassFileTransformer, Opcodes {
 			Class<?> classBeingRedefined, ProtectionDomain protectionDomain,
 			byte[] classfileBuffer) throws IllegalClassFormatException {
 		try {
-			System.out.println(className);
-
 			ClassTransformer ct = null;
 			if (config.handlers.isGroupClass(className)) {
 				System.out.println(className + " is handler group");
@@ -58,10 +56,12 @@ public class Transformer implements ClassFileTransformer, Opcodes {
 		}
 	}
 
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
+
 	private static final File baseDir = new File(
 			System.getProperty("user.home"), "Temp/mg42");
 
+	@SuppressWarnings("unused")
 	private static void dumpResult(byte[] result, String internalName) {
 		if (!DEBUG) {
 			return;

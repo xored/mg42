@@ -1,3 +1,4 @@
 *~
 bin/
 target/
+/mg42-agent/src/main/resources/mg42-runtime-0.0.1-SNAPSHOT-jar-with-dependencies.jar

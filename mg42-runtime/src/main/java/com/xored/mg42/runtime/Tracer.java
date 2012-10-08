@@ -20,25 +20,17 @@ public class Tracer {
 	 */
 	public static void methodStart(int classId, int traceId, Object instance,
 			Object[] args) {
-		System.out.println(String.format("Started method %d:%d", classId,
-				traceId));
 		if (traceGroups.containsKey(classId)) {
-			System.out.println(String.format(
-					"Client code returned: %s",
-					traceGroups.get(classId).mg42MethodProxy(traceId, instance,
-							args, null)));
+			traceGroups.get(classId).mg42MethodProxy(traceId, instance, args,
+					null);
 		}
 	}
 
 	public static void methodEnd(Object result, int classId, int traceId,
 			Object instance, Object[] args) {
-		System.out.println(String.format("Ended method %d:%d, result: %s",
-				classId, traceId, result));
 		if (traceGroups.containsKey(classId)) {
-			System.out.println(String.format(
-					"Client code returned: %s",
-					traceGroups.get(classId).mg42MethodProxy(traceId, instance,
-							args, result)));
+			traceGroups.get(classId).mg42MethodProxy(traceId, instance, args,
+					result);
 		}
 	}
 
