@@ -30,21 +30,22 @@ public class Transformer implements ClassFileTransformer, Opcodes {
 		try {
 			ClassTransformer ct = null;
 			if (config.handlers.isGroupClass(className)) {
-				System.out.println(className + " is handler group");
 				ct = new HandlerGroupTransformer(
 						config.handlers.findGroup(className));
 			}
 
 			if (config.handlers.isHandlerClass(className)) {
-				System.out.println(className + " is handler class");
 				ct = new HandlerClassTransformer(
 						config.handlers.findHandlerClass(className));
 			}
 
 			if (config.sources.isSourceClass(className)) {
-				System.out.println(className + " is source class");
 				ct = new SourceClassTransformer(
 						config.sources.findSource(className));
+			}
+
+			if (MG42Runtime.tracerConfigClassName.equals(className)) {
+				ct = new TracerConfigClassTransformer();
 			}
 
 			if (ct == null) {

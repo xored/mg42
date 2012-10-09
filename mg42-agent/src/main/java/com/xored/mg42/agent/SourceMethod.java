@@ -15,7 +15,7 @@ public class SourceMethod {
 	public final Map<String, HandlerMethod> points = new HashMap<String, HandlerMethod>();
 
 	public boolean matches(String name, String desc) {
-		return method.equals(new Method(name, desc));
+		return MethodUtils.matches(method, name, desc);
 	}
 
 }

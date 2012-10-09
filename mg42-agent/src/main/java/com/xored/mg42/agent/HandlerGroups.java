@@ -55,7 +55,6 @@ public class HandlerGroups {
 					}
 
 					SourceMethod sm = sourceTypeMap.get(method);
-					System.out.println("source method " + sm.method);
 					sm.points.put(point, hm);
 				}
 			}

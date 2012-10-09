@@ -12,10 +12,16 @@ import java.util.jar.JarFile;
 import com.google.common.io.ByteStreams;
 
 public class Agent {
+	private static Config config;
+
+	public static Config getConfig() {
+		return config;
+	}
+
 	public static void premain(String args, Instrumentation inst)
 			throws Exception {
 		inst.appendToBootstrapClassLoaderSearch(extractRuntimeJar());
-		Config config = Config.fromArgs(args);
+		config = Config.fromArgs(args);
 		inst.addTransformer(new Transformer(config), true);
 		Class<?>[] toRetransform = classesToRetransform(config);
 		if (toRetransform.length > 0) {

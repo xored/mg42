@@ -51,7 +51,7 @@ public class HandlerGroup {
 	}
 
 	public boolean isEntryMethod(String name, String desc) {
-		return entryMethod.equals(new Method(name, desc));
+		return MethodUtils.matches(entryMethod, name, desc);
 	}
 
 	public static HandlerGroup fromJson(int firstClassId, JsonObject object) {

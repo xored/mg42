@@ -41,4 +41,9 @@ public interface MG42Runtime {
 			.put(Config.ON_EXIT_POINT,
 					"(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;")
 			.build();
+
+	public static final String tracerConfigClassName = "com/xored/mg42/runtime/TracerConfig";
+
+	public static final Method methodGetOutputArg = Method
+			.getMethod("String getOutputArg()");
 }
