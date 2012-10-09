@@ -3,18 +3,20 @@ package com.xored.mg42.agent;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.AdviceAdapter;
+import org.objectweb.asm.commons.Method;
 
 final class SourceMethodTransformer extends AdviceAdapter implements
 		MG42Runtime {
 
 	private final SourceMethod sourceMethod;
-
+	private final Method method;
 	private final Label startFinally = new Label();
 
 	SourceMethodTransformer(SourceMethod sourceMethod, MethodVisitor mv,
 			int access, String name, String desc) {
 		super(ASM4, mv, access, name, desc);
 		this.sourceMethod = sourceMethod;
+		this.method = new Method(name, desc);
 	}
 
 	@Override
@@ -60,7 +62,7 @@ final class SourceMethodTransformer extends AdviceAdapter implements
 		if (opcode == ATHROW || opcode == ARETURN) {
 			dup(); // make a copy of exception object
 		} else if (opcode == IRETURN) {
-			box(sourceMethod.method.getReturnType());
+			box(method.getReturnType());
 		}
 		push(getOnExit().parent.classId);
 		push(getOnExit().id);
