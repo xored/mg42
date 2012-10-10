@@ -27,8 +27,12 @@ public interface MG42Runtime {
 	public static final Method methodAddGroup = Method
 			.getMethod("void addGroup(int, com.xored.mg42.runtime.TracerGroup)");
 
+	public static final Method methodAddMethodDescription = Method
+			.getMethod("void addMethodDescription(int, int, String)");
+
 	public static final Method defaultConstructor = Method
 			.getMethod("void <init> ()");
+
 	public static final Type TracerGroup = Type
 			.getObjectType("com/xored/mg42/runtime/TracerGroup");
 

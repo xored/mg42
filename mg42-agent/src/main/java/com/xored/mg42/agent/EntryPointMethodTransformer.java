@@ -23,6 +23,12 @@ public class EntryPointMethodTransformer extends AdviceAdapter implements
 			dup();
 			invokeConstructor(handlerClass.type, defaultConstructor);
 			invokeStatic(Tracer, methodAddGroup);
+			for (HandlerMethod handlerMethod : handlerClass.handlers) {
+				push(handlerClass.classId);
+				push(handlerMethod.id);
+				push(handlerMethod.callee);
+				invokeStatic(Tracer, methodAddMethodDescription);
+			}
 		}
 	}
 
