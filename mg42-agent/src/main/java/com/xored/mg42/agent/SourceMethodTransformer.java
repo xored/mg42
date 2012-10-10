@@ -62,6 +62,7 @@ final class SourceMethodTransformer extends AdviceAdapter implements
 		if (opcode == ATHROW || opcode == ARETURN) {
 			dup(); // make a copy of exception object
 		} else if (opcode == IRETURN) {
+			dup();
 			box(method.getReturnType());
 		}
 		push(getOnExit().parent.classId);
