@@ -75,4 +75,12 @@ public class Tracer {
 		Map<Integer, String> record = methodDescriptions.get(classId);
 		record.put(methodId, desc);
 	}
+
+	static class CapturedEvent {
+		String method;
+		String kind;
+		long threadId;
+		String threadName;
+		Object data;
+	}
 }
