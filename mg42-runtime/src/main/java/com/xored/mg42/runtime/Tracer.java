@@ -1,5 +1,8 @@
 package com.xored.mg42.runtime;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,7 +13,10 @@ public class Tracer {
 
 	private static Map<Integer, TracerGroup> traceGroups = new HashMap<Integer, TracerGroup>();
 	private static Map<Integer, Map<Integer, String>> methodDescriptions = new HashMap<Integer, Map<Integer, String>>();
+
 	private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	private static DateFormat dateFormat = new SimpleDateFormat(
+			"MM/dd/yyyy HH:mm:ss.SSS");
 
 	/**
 	 * Invoked on method start
@@ -27,10 +33,10 @@ public class Tracer {
 			Object[] args) {
 		if (traceGroups.containsKey(classId)) {
 			CapturedEvent captured = new CapturedEvent();
+			fillCapturedInfo(classId, traceId, captured);
 			captured.data = traceGroups.get(classId).mg42MethodProxy(traceId,
 					instance, args, null);
 			captured.kind = "start";
-			fillCapturedInfo(classId, traceId, captured);
 
 			sendOutput(captured);
 		}
@@ -51,6 +57,7 @@ public class Tracer {
 
 	private static void fillCapturedInfo(int classId, int traceId,
 			CapturedEvent captured) {
+		captured.timestamp = dateFormat.format(new Date());
 		captured.threadId = Thread.currentThread().getId();
 		captured.threadName = Thread.currentThread().getName();
 		Map<Integer, String> record = methodDescriptions.get(classId);
@@ -81,6 +88,7 @@ public class Tracer {
 		String kind;
 		long threadId;
 		String threadName;
+		String timestamp;
 		Object data;
 	}
 }
