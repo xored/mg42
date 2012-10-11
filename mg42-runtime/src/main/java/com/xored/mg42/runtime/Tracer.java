@@ -6,17 +6,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 public class Tracer {
 
 	private static Map<Integer, TracerGroup> traceGroups = new HashMap<Integer, TracerGroup>();
 	private static Map<Integer, Map<Integer, String>> methodDescriptions = new HashMap<Integer, Map<Integer, String>>();
 
-	private static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 	private static DateFormat dateFormat = new SimpleDateFormat(
 			"MM/dd/yyyy HH:mm:ss.SSS");
+	private static JsonOutputWriter outputWriter = new JsonOutputWriter(
+			TracerConfig.getOutput());
 
 	/**
 	 * Invoked on method start
@@ -38,7 +36,7 @@ public class Tracer {
 					instance, args, null);
 			captured.kind = "start";
 
-			sendOutput(captured);
+			outputWriter.write(captured);
 		}
 	}
 
@@ -51,7 +49,7 @@ public class Tracer {
 			captured.kind = "end";
 			fillCapturedInfo(classId, traceId, captured);
 
-			sendOutput(captured);
+			outputWriter.write(captured);
 		}
 	}
 
@@ -64,10 +62,6 @@ public class Tracer {
 		if (record != null) {
 			captured.method = record.get(traceId);
 		}
-	}
-
-	private static void sendOutput(Object data) {
-		System.out.println(gson.toJson(data));
 	}
 
 	public static void addGroup(int classId, TracerGroup group) {
