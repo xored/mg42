@@ -27,6 +27,7 @@ public class EntryPointMethodTransformer extends AdviceAdapter implements
 				push(handlerClass.classId);
 				push(handlerMethod.id);
 				push(handlerMethod.callee);
+				push(handlerMethod.hasRespectiveExitPoint());
 				invokeStatic(Tracer, methodAddMethodDescription);
 			}
 		}

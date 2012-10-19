@@ -35,10 +35,27 @@ public class HandlerClass {
 			JsonObject methods) {
 		int methodId = 0;
 		List<HandlerMethod> children = new ArrayList<HandlerMethod>();
+		List<HandlerMethod> onEnterMethods = new ArrayList<HandlerMethod>();
+		List<HandlerMethod> onExitMethods = new ArrayList<HandlerMethod>();
 		for (Entry<String, JsonElement> entry : methods.entrySet()) {
-			children.add(HandlerMethod.fromJson(methodId, entry.getKey(), entry
-					.getValue().getAsJsonObject()));
+			HandlerMethod method = HandlerMethod.fromJson(methodId,
+					entry.getKey(), entry.getValue().getAsJsonObject());
+			children.add(method);
+			if (Config.ON_ENTER_POINT.equals(method.point)) {
+				onEnterMethods.add(method);
+			}
+			if (Config.ON_EXIT_POINT.equals(method.point)) {
+				onExitMethods.add(method);
+			}
 			methodId++;
+		}
+		for (HandlerMethod enterMethod : onEnterMethods) {
+			for (HandlerMethod exitMethod : onEnterMethods) {
+				if (enterMethod.callee.equals(exitMethod.callee)) {
+					enterMethod.setHasRespectiveExitPoint();
+					break;
+				}
+			}
 		}
 		return new HandlerClass(classId, qname,
 				children.toArray(new HandlerMethod[children.size()]));

@@ -5,16 +5,23 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Tracer {
 
 	private static Map<Integer, TracerGroup> traceGroups = new HashMap<Integer, TracerGroup>();
-	private static Map<Integer, Map<Integer, String>> methodDescriptions = new HashMap<Integer, Map<Integer, String>>();
+	private static Map<Integer, Map<Integer, MethodDescription>> methodDescriptions = new HashMap<Integer, Map<Integer, MethodDescription>>();
+	private static Map<String, Long> callIds = new ConcurrentHashMap<String, Long>();
+	private static long nextId;
 
 	private static DateFormat dateFormat = new SimpleDateFormat(
 			"MM/dd/yyyy HH:mm:ss.SSS");
 	private static JsonOutputWriter outputWriter = new JsonOutputWriter(
 			TracerConfig.getOutput());
+
+	public static synchronized long getNextId() {
+		return nextId++;
+	}
 
 	/**
 	 * Invoked on method start
@@ -58,9 +65,23 @@ public class Tracer {
 		captured.timestamp = dateFormat.format(new Date());
 		captured.threadId = Thread.currentThread().getId();
 		captured.threadName = Thread.currentThread().getName();
-		Map<Integer, String> record = methodDescriptions.get(classId);
+		Map<Integer, MethodDescription> record = methodDescriptions
+				.get(classId);
 		if (record != null) {
-			captured.method = record.get(traceId);
+			MethodDescription desc = record.get(traceId);
+			if (desc != null) {
+				captured.method = desc.method;
+				String methodKey = captured.threadId + captured.method;
+				if (desc.hasRespectiveExitPoint) {
+					captured.callId = getNextId();
+					callIds.put(methodKey, captured.callId);
+				} else {
+					if (callIds.containsKey(methodKey)) {
+						captured.callId = callIds.get(methodKey);
+						callIds.remove(methodKey);
+					}
+				}
+			}
 		}
 	}
 
@@ -69,12 +90,25 @@ public class Tracer {
 	}
 
 	public static void addMethodDescription(int classId, int methodId,
-			String desc) {
+			String desc, boolean hasRespectiveExitPoint) {
 		if (!methodDescriptions.containsKey(classId)) {
-			methodDescriptions.put(classId, new HashMap<Integer, String>());
+			methodDescriptions.put(classId,
+					new HashMap<Integer, MethodDescription>());
 		}
-		Map<Integer, String> record = methodDescriptions.get(classId);
-		record.put(methodId, desc);
+		Map<Integer, MethodDescription> record = methodDescriptions
+				.get(classId);
+		record.put(methodId,
+				new MethodDescription(desc, hasRespectiveExitPoint));
+	}
+
+	static class MethodDescription {
+		public MethodDescription(String method, boolean hasRespectiveExitPoint) {
+			this.method = method;
+			this.hasRespectiveExitPoint = hasRespectiveExitPoint;
+		}
+
+		final String method;
+		final boolean hasRespectiveExitPoint;
 	}
 
 	static class CapturedEvent {
@@ -83,6 +117,7 @@ public class Tracer {
 		long threadId;
 		String threadName;
 		String timestamp;
+		long callId;
 		Object data;
 	}
 }
