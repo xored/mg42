@@ -1,8 +1,11 @@
 package com.xored.mg42.runtime;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -34,6 +37,9 @@ public class JsonOutputWriter {
 		if (output != null && "tcp".equals(output.getScheme())) {
 			initTcpSender();
 			type = OutputType.TCP;
+		} else if (output != null && "file".equals(output.getScheme())) {
+			initFileSender();
+			type = OutputType.FILE;
 		} else {
 			type = OutputType.STDOUT;
 		}
@@ -51,7 +57,7 @@ public class JsonOutputWriter {
 	private void initTcpSender() {
 		Thread tcpSender = new Thread(new Runnable() {
 			private Socket socket = new Socket();
-			private BufferedWriter writer;
+			private Writer writer;
 
 			private void tryToConnect() {
 				try {
@@ -62,8 +68,8 @@ public class JsonOutputWriter {
 					writer = new BufferedWriter(new OutputStreamWriter(socket
 							.getOutputStream()));
 				} catch (IOException e) {
-					System.out.println("Could not output to: " + output + ". "
-							+ e.getMessage());
+					System.out.println("Could not output to: " + output
+							+ ". Reason: " + e.getMessage());
 				}
 			}
 
@@ -95,5 +101,57 @@ public class JsonOutputWriter {
 			}
 		});
 		tcpSender.start();
+	}
+
+	private void initFileSender() {
+		Thread fileSender = new Thread(new Runnable() {
+
+			private Writer writer;
+
+			private Writer getWriter() {
+				if (writer == null) {
+					try {
+						File outputFile = new File(output);
+						writer = new BufferedWriter(new FileWriter(outputFile));
+					} catch (IOException e) {
+						System.out.println("Could not output to: " + output
+								+ ". Reason: " + e.getMessage());
+						return null;
+					}
+				}
+				return writer;
+			}
+
+			public void run() {
+				try {
+					if (getWriter() != null) {
+						while (!Thread.State.TERMINATED.equals(parentThread
+								.getState()) || !messageQueue.isEmpty()) {
+							if (!messageQueue.isEmpty()) {
+								try {
+									String msg = messageQueue.poll();
+									writer.write(msg);
+									writer.flush();
+								} catch (IOException e) {
+									System.out
+											.println("Error while output to: "
+													+ output + ". "
+													+ e.getMessage());
+								}
+							}
+						}
+					}
+				} finally {
+					try {
+						if (writer != null) {
+							writer.close();
+						}
+					} catch (IOException e) {
+						// Do nothing
+					}
+				}
+			}
+		});
+		fileSender.start();
 	}
 }
