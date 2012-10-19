@@ -19,6 +19,9 @@ public class JsonOutputWriter {
 		STDOUT, FILE, TCP
 	};
 
+	private static final String lineDelimeter = System
+			.getProperty("line.separator");
+
 	private final URI output;
 	private final OutputType type;
 
@@ -28,7 +31,7 @@ public class JsonOutputWriter {
 
 	public JsonOutputWriter(URI output) {
 		this.output = output;
-		if ("tcp".equals(output.getScheme())) {
+		if (output != null && "tcp".equals(output.getScheme())) {
 			initTcpSender();
 			type = OutputType.TCP;
 		} else {
@@ -41,7 +44,7 @@ public class JsonOutputWriter {
 		if (OutputType.STDOUT.equals(type)) {
 			System.out.println(jsonData);
 		} else {
-			messageQueue.add(jsonData);
+			messageQueue.add(jsonData + lineDelimeter);
 		}
 	}
 
