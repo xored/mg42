@@ -13,7 +13,7 @@
 * Agent arguments
   - *out* -- URI where to send an info. Examples: *tcp://localhost:1234*, *file:/home/user/out.txt*. If nothing specified, sends output to =stdout=.
   - *port* -- Local port to listen for commands. Commands are plain UTF-8 strings (=start= or =stop=).
-  - *start* -- If true, start tracing immediately, otherwise wait for =start= command via =port=.
+  - *start* -- If true, start tracing immediately, otherwise wait for =start= command via =port=. True by default, i.e. if not specified tracing starting immediately.
   - *config* -- Path to a file with instrumentation description (see below)
   Example: 
   #+BEGIN_SRC bash

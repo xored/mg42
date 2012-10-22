@@ -15,9 +15,28 @@ public class TracerConfigClassTransformer extends ClassTransformer {
 			return new JSRInlinerAdapter(new GetOutputMethodTransformer(mv,
 					access, name, desc), access, name, desc, signature,
 					exceptions);
+		} else if (MethodUtils.matches(MG42Runtime.methodGetStartArg, name,
+				desc)) {
+			return new JSRInlinerAdapter(new GetStartMethodTransformer(mv,
+					access, name, desc), access, name, desc, signature,
+					exceptions);
 		} else {
 			return new JSRInlinerAdapter(mv, access, name, desc, signature,
 					exceptions);
+		}
+	}
+
+	class GetStartMethodTransformer extends AdviceAdapter {
+
+		GetStartMethodTransformer(MethodVisitor mv, int access, String name,
+				String desc) {
+			super(ASM4, mv, access, name, desc);
+		}
+
+		@Override
+		public void visitCode() {
+			push(Agent.getConfig().getStart());
+			returnValue();
 		}
 	}
 

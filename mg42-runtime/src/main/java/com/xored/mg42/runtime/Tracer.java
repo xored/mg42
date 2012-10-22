@@ -18,6 +18,7 @@ public class Tracer {
 	private static Map<Integer, Map<Integer, MethodDescription>> methodDescriptions = new HashMap<Integer, Map<Integer, MethodDescription>>();
 	private static Map<String, Stack<Long>> callIds = new ConcurrentHashMap<String, Stack<Long>>();
 	private static long nextId;
+	private static boolean isStarted = TracerConfig.getStartArg();
 
 	private static DateFormat dateFormat = new SimpleDateFormat(
 			"MM/dd/yyyy HH:mm:ss.SSS");
@@ -41,7 +42,7 @@ public class Tracer {
 	 */
 	public static void methodStart(int classId, int traceId, Object instance,
 			Object[] args) {
-		if (traceGroups.containsKey(classId)) {
+		if (isStarted && traceGroups.containsKey(classId)) {
 			CapturedEvent captured = new CapturedEvent();
 			fillCapturedInfo(classId, traceId, captured, PointType.ENTER);
 			captured.data = traceGroups.get(classId).mg42MethodProxy(traceId,
@@ -54,7 +55,7 @@ public class Tracer {
 
 	public static void methodEnd(Object result, int classId, int traceId,
 			Object instance, Object[] args) {
-		if (traceGroups.containsKey(classId)) {
+		if (isStarted && traceGroups.containsKey(classId)) {
 			CapturedEvent captured = new CapturedEvent();
 			captured.data = traceGroups.get(classId).mg42MethodProxy(traceId,
 					instance, args, result);

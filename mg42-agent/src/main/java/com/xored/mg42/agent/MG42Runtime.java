@@ -50,4 +50,8 @@ public interface MG42Runtime {
 
 	public static final Method methodGetOutputArg = Method
 			.getMethod("String getOutputArg()");
+
+	public static final Method methodGetStartArg = Method
+			.getMethod("boolean getStartArg()");
+
 }

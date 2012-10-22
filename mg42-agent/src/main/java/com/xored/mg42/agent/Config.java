@@ -18,12 +18,15 @@ public class Config {
 	private static final String ARG_OUTPUT = "out";
 	private static final String ARG_PORT = "port";
 	private static final String ARG_TRACERS = "tracers";
+	private static final String ARG_START = "start";
 
 	public Config(Map<String, String> args) throws IOException {
 		output = args.containsKey(ARG_OUTPUT) ? URI
 				.create(args.get(ARG_OUTPUT)) : null;
 		port = args.containsKey(ARG_PORT) ? Integer
 				.parseInt(args.get(ARG_PORT)) : -1;
+		start = args.containsKey(ARG_START) ? Boolean.parseBoolean(args
+				.get(ARG_START)) : true;
 		handlers = args.containsKey(ARG_TRACERS) ? readTracers(args
 				.get(ARG_TRACERS)) : new HandlerGroups(
 				new HashMap<String, HandlerGroup>());
@@ -32,6 +35,7 @@ public class Config {
 
 	private URI output;
 	private int port;
+	private boolean start = true;
 	public final HandlerGroups handlers;
 	public final SourceClasses sources;
 
@@ -41,6 +45,10 @@ public class Config {
 
 	public int getPort() {
 		return port;
+	}
+
+	public boolean getStart() {
+		return start;
 	}
 
 	public static Config fromArgs(String argStr) throws IOException {
