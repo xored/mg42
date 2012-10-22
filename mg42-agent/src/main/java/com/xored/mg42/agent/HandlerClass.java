@@ -50,7 +50,7 @@ public class HandlerClass {
 			methodId++;
 		}
 		for (HandlerMethod enterMethod : onEnterMethods) {
-			for (HandlerMethod exitMethod : onEnterMethods) {
+			for (HandlerMethod exitMethod : onExitMethods) {
 				if (enterMethod.callee.equals(exitMethod.callee)) {
 					enterMethod.setHasRespectiveExitPoint();
 					break;

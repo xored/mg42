@@ -5,13 +5,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Tracer {
 
 	private static Map<Integer, TracerGroup> traceGroups = new HashMap<Integer, TracerGroup>();
 	private static Map<Integer, Map<Integer, MethodDescription>> methodDescriptions = new HashMap<Integer, Map<Integer, MethodDescription>>();
-	private static Map<String, Long> callIds = new ConcurrentHashMap<String, Long>();
+	private static Map<String, Stack<Long>> callIds = new ConcurrentHashMap<String, Stack<Long>>();
 	private static long nextId;
 
 	private static DateFormat dateFormat = new SimpleDateFormat(
@@ -74,11 +75,18 @@ public class Tracer {
 				String methodKey = captured.threadId + captured.method;
 				if (desc.hasRespectiveExitPoint) {
 					captured.callId = getNextId();
-					callIds.put(methodKey, captured.callId);
+					if (!callIds.containsKey(methodKey)) {
+						callIds.put(methodKey, new Stack<Long>());
+					}
+					Stack<Long> callStack = callIds.get(methodKey);
+					callStack.push(captured.callId);
 				} else {
 					if (callIds.containsKey(methodKey)) {
-						captured.callId = callIds.get(methodKey);
-						callIds.remove(methodKey);
+						Stack<Long> callStack = callIds.get(methodKey);
+						captured.callId = callStack.pop();
+						if (callStack.isEmpty()) {
+							callIds.remove(methodKey);
+						}
 					}
 				}
 			}
@@ -117,7 +125,7 @@ public class Tracer {
 		long threadId;
 		String threadName;
 		String timestamp;
-		long callId;
+		Long callId;
 		Object data;
 	}
 }
