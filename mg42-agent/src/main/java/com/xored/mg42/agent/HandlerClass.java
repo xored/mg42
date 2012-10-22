@@ -53,6 +53,7 @@ public class HandlerClass {
 			for (HandlerMethod exitMethod : onExitMethods) {
 				if (enterMethod.callee.equals(exitMethod.callee)) {
 					enterMethod.setHasRespectiveExitPoint();
+					exitMethod.setHasRespectiveEnterPoint();
 					break;
 				}
 			}

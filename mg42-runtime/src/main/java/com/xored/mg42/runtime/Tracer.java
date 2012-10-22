@@ -10,6 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Tracer {
 
+	private enum PointType {
+		ENTER, EXIT
+	};
+
 	private static Map<Integer, TracerGroup> traceGroups = new HashMap<Integer, TracerGroup>();
 	private static Map<Integer, Map<Integer, MethodDescription>> methodDescriptions = new HashMap<Integer, Map<Integer, MethodDescription>>();
 	private static Map<String, Stack<Long>> callIds = new ConcurrentHashMap<String, Stack<Long>>();
@@ -39,7 +43,7 @@ public class Tracer {
 			Object[] args) {
 		if (traceGroups.containsKey(classId)) {
 			CapturedEvent captured = new CapturedEvent();
-			fillCapturedInfo(classId, traceId, captured);
+			fillCapturedInfo(classId, traceId, captured, PointType.ENTER);
 			captured.data = traceGroups.get(classId).mg42MethodProxy(traceId,
 					instance, args, null);
 			captured.kind = "start";
@@ -55,14 +59,14 @@ public class Tracer {
 			captured.data = traceGroups.get(classId).mg42MethodProxy(traceId,
 					instance, args, result);
 			captured.kind = "end";
-			fillCapturedInfo(classId, traceId, captured);
+			fillCapturedInfo(classId, traceId, captured, PointType.EXIT);
 
 			outputWriter.write(captured);
 		}
 	}
 
 	private static void fillCapturedInfo(int classId, int traceId,
-			CapturedEvent captured) {
+			CapturedEvent captured, PointType pointType) {
 		captured.timestamp = dateFormat.format(new Date());
 		captured.threadId = Thread.currentThread().getId();
 		captured.threadName = Thread.currentThread().getName();
@@ -73,14 +77,16 @@ public class Tracer {
 			if (desc != null) {
 				captured.method = desc.method;
 				String methodKey = captured.threadId + captured.method;
-				if (desc.hasRespectiveExitPoint) {
+				if (PointType.ENTER.equals(pointType)
+						&& desc.hasRespectiveExitPoint) {
 					captured.callId = getNextId();
 					if (!callIds.containsKey(methodKey)) {
 						callIds.put(methodKey, new Stack<Long>());
 					}
 					Stack<Long> callStack = callIds.get(methodKey);
 					callStack.push(captured.callId);
-				} else {
+				} else if (PointType.EXIT.equals(pointType)
+						&& desc.hasRespectiveEnterPoint) {
 					if (callIds.containsKey(methodKey)) {
 						Stack<Long> callStack = callIds.get(methodKey);
 						captured.callId = callStack.pop();
@@ -98,25 +104,29 @@ public class Tracer {
 	}
 
 	public static void addMethodDescription(int classId, int methodId,
-			String desc, boolean hasRespectiveExitPoint) {
+			String desc, boolean hasRespectiveExitPoint,
+			boolean hasRespectiveEnterPoint) {
 		if (!methodDescriptions.containsKey(classId)) {
 			methodDescriptions.put(classId,
 					new HashMap<Integer, MethodDescription>());
 		}
 		Map<Integer, MethodDescription> record = methodDescriptions
 				.get(classId);
-		record.put(methodId,
-				new MethodDescription(desc, hasRespectiveExitPoint));
+		record.put(methodId, new MethodDescription(desc,
+				hasRespectiveExitPoint, hasRespectiveEnterPoint));
 	}
 
 	static class MethodDescription {
-		public MethodDescription(String method, boolean hasRespectiveExitPoint) {
-			this.method = method;
-			this.hasRespectiveExitPoint = hasRespectiveExitPoint;
-		}
-
 		final String method;
 		final boolean hasRespectiveExitPoint;
+		final boolean hasRespectiveEnterPoint;
+
+		public MethodDescription(String method, boolean hasRespectiveExitPoint,
+				boolean hasRespectiveEnterPoint) {
+			this.method = method;
+			this.hasRespectiveExitPoint = hasRespectiveExitPoint;
+			this.hasRespectiveEnterPoint = hasRespectiveEnterPoint;
+		}
 	}
 
 	static class CapturedEvent {

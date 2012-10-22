@@ -21,6 +21,7 @@ public class HandlerMethod implements MG42Runtime {
 	public final String methodName;
 	public final Method method;
 	private boolean hasRespectiveExitPoint;
+	private boolean hasRespectiveEnterPoint;
 
 	public void setHasRespectiveExitPoint() {
 		if (!Config.ON_ENTER_POINT.equals(point)) {
@@ -31,6 +32,17 @@ public class HandlerMethod implements MG42Runtime {
 
 	public boolean hasRespectiveExitPoint() {
 		return hasRespectiveExitPoint;
+	}
+
+	public void setHasRespectiveEnterPoint() {
+		if (!Config.ON_EXIT_POINT.equals(point)) {
+			throw new IllegalArgumentException("Invalid point type");
+		}
+		hasRespectiveEnterPoint = true;
+	}
+
+	public boolean hasRespectiveEnterPoint() {
+		return hasRespectiveEnterPoint;
 	}
 
 	public boolean isOnExit() {
