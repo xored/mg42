@@ -54,4 +54,6 @@ public interface MG42Runtime {
 	public static final Method methodGetStartArg = Method
 			.getMethod("boolean getStartArg()");
 
+	public static final Method methodGetPortArg = Method
+			.getMethod("int getPortArg()");
 }

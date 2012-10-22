@@ -15,4 +15,8 @@ public class TracerConfig {
 	public static boolean getStartArg() {
 		return true;
 	}
+
+	public static int getPortArg() {
+		return -1;
+	}
 }

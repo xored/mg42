@@ -20,6 +20,11 @@ public class TracerConfigClassTransformer extends ClassTransformer {
 			return new JSRInlinerAdapter(new GetStartMethodTransformer(mv,
 					access, name, desc), access, name, desc, signature,
 					exceptions);
+		} else if (MethodUtils
+				.matches(MG42Runtime.methodGetPortArg, name, desc)) {
+			return new JSRInlinerAdapter(new GetPortMethodTransformer(mv,
+					access, name, desc), access, name, desc, signature,
+					exceptions);
 		} else {
 			return new JSRInlinerAdapter(mv, access, name, desc, signature,
 					exceptions);
@@ -36,6 +41,20 @@ public class TracerConfigClassTransformer extends ClassTransformer {
 		@Override
 		public void visitCode() {
 			push(Agent.getConfig().getStart());
+			returnValue();
+		}
+	}
+
+	class GetPortMethodTransformer extends AdviceAdapter {
+
+		GetPortMethodTransformer(MethodVisitor mv, int access, String name,
+				String desc) {
+			super(ASM4, mv, access, name, desc);
+		}
+
+		@Override
+		public void visitCode() {
+			push(Agent.getConfig().getPort());
 			returnValue();
 		}
 	}

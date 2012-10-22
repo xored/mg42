@@ -1,5 +1,12 @@
 package com.xored.mg42.runtime;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -19,6 +26,8 @@ public class Tracer {
 	private static Map<String, Stack<Long>> callIds = new ConcurrentHashMap<String, Stack<Long>>();
 	private static long nextId;
 	private static boolean isStarted = TracerConfig.getStartArg();
+	private static int port = TracerConfig.getPortArg();
+	private static final Thread parentThread = Thread.currentThread();
 
 	private static DateFormat dateFormat = new SimpleDateFormat(
 			"MM/dd/yyyy HH:mm:ss.SSS");
@@ -27,6 +36,42 @@ public class Tracer {
 
 	public static synchronized long getNextId() {
 		return nextId++;
+	}
+
+	static {
+		if (port != -1) {
+			Thread tracerServer = new Thread(new Runnable() {
+				@Override
+				public void run() {
+					ServerSocket srv = null;
+					try {
+						srv = new ServerSocket(port);
+						srv.setSoTimeout(1000);
+						while (!Thread.State.TERMINATED.equals(parentThread
+								.getState())) {
+							try {
+								Socket socket = srv.accept();
+								new HandleClient(socket);
+							} catch (SocketTimeoutException e) {
+								// Ignore
+							}
+						}
+					} catch (IOException e) {
+						System.out.println("Tracer server error: "
+								+ e.getMessage());
+					} finally {
+						try {
+							if (srv != null) {
+								srv.close();
+							}
+						} catch (IOException e) {
+							// Ignore
+						}
+					}
+				}
+			});
+			tracerServer.start();
+		}
 	}
 
 	/**
@@ -138,5 +183,71 @@ public class Tracer {
 		String timestamp;
 		Long callId;
 		Object data;
+	}
+
+	static class HandleClient extends Thread {
+		private static final String CMD_START = "start";
+		private static final String CMD_STOP = "stop";
+		private static final String CMD_STATUS = "status";
+		private static final String CMD_EXIT = "exit";
+
+		private static final String lineDelimeter = System
+				.getProperty("line.separator");
+
+		Socket socket;
+		BufferedReader input;
+		PrintWriter output;
+
+		public HandleClient(Socket socket) throws IOException {
+			this.socket = socket;
+			input = new BufferedReader(new InputStreamReader(
+					socket.getInputStream()));
+			output = new PrintWriter(socket.getOutputStream(), true);
+			output.println("Wellcome to mg42 tracer server. Commands:"
+					+ lineDelimeter + "start - start tracing" + lineDelimeter
+					+ "stop - stop tracing" + lineDelimeter
+					+ "status - current state of tracer server" + lineDelimeter
+					+ "exit - disconnect from tracer server");
+			start();
+		}
+
+		private void showStatus() {
+			if (isStarted) {
+				output.println("Tracer server started.");
+			} else {
+				output.println("Tracer server stopped.");
+			}
+		}
+
+		public void run() {
+			String cmd = null;
+			try {
+				while (!Thread.State.TERMINATED.equals(parentThread.getState())
+						&& socket.isConnected() && !CMD_EXIT.equals(cmd)) {
+					cmd = input.readLine();
+					if (CMD_STOP.equals(cmd)) {
+						isStarted = false;
+						showStatus();
+					} else if (CMD_START.equals(cmd)) {
+						isStarted = true;
+						showStatus();
+					} else if (CMD_STATUS.equals(cmd)) {
+						showStatus();
+					} else if (!CMD_EXIT.equals(cmd) && cmd != null) {
+						output.println("Unrecognized command: " + cmd);
+					}
+				}
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			} finally {
+				try {
+					input.close();
+					output.close();
+					socket.close();
+				} catch (IOException e) {
+					// Ignore
+				}
+			}
+		}
 	}
 }
