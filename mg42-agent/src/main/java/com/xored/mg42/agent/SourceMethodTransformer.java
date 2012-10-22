@@ -2,6 +2,7 @@ package com.xored.mg42.agent;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 import org.objectweb.asm.commons.Method;
 
@@ -64,6 +65,8 @@ final class SourceMethodTransformer extends AdviceAdapter implements
 		} else if (opcode == IRETURN) {
 			dup();
 			box(method.getReturnType());
+		} else {
+			push((Type) null);
 		}
 		push(getOnExit().parent.classId);
 		push(getOnExit().id);
