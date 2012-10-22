@@ -25,13 +25,12 @@
   Here's a sample JSON object corresponds to a single event captured from =mg42=:
   #+BEGIN_SRC js
     {
-        "method" : "fully.qualified.Method#name",
-        //to distinguish overrides:
-        "methodArgs": ["fully.qualified.Arg1", "fully.qualified.Arg2"], 
-        "callId" : 23842342, //Matching method start/end must have the same ID
+        "method" : "fully.qualified.Method#name(fully.qualified.Arg1, fully.qualified.Arg2, ...)",
         "kind" : "start", //Or "end"
         "threadId" : 142,
         "threadName" : "Worker-1",
+        "timestamp": "10/22/2012 10:55:26.844",
+        "callId" : 23842342, //Matching method start/end must have the same ID
         "data" : { //arbitrary non-null data from client code
             "mystr" : "str",
             "mylist" : [4, 8, 15, 16, 23, 42],
