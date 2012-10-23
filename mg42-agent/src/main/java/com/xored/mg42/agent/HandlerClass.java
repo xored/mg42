@@ -12,11 +12,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class HandlerClass {
-	public HandlerClass(int classId, String qname, HandlerMethod[] tracers) {
+	public HandlerClass(int classId, String qname, HandlerMethod[] handlers) {
 		this.classId = classId;
 		this.type = HandlerGroup.getTypeByQName(qname);
-		this.handlers = tracers;
-		for (HandlerMethod method : tracers) {
+		this.handlers = handlers;
+		for (HandlerMethod method : handlers) {
 			method.parent = this;
 			methodsMap.put(method.methodName, method);
 		}

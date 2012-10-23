@@ -17,7 +17,7 @@ public class Config {
 
 	private static final String ARG_OUTPUT = "out";
 	private static final String ARG_PORT = "port";
-	private static final String ARG_TRACERS = "tracers";
+	private static final String ARG_CONFIG = "config";
 	private static final String ARG_START = "start";
 
 	public Config(Map<String, String> args) throws IOException {
@@ -27,8 +27,8 @@ public class Config {
 				.parseInt(args.get(ARG_PORT)) : -1;
 		start = args.containsKey(ARG_START) ? Boolean.parseBoolean(args
 				.get(ARG_START)) : true;
-		handlers = args.containsKey(ARG_TRACERS) ? readTracers(args
-				.get(ARG_TRACERS)) : new HandlerGroups(
+		handlers = args.containsKey(ARG_CONFIG) ? readConfig(args
+				.get(ARG_CONFIG)) : new HandlerGroups(
 				new HashMap<String, HandlerGroup>());
 		sources = handlers.calcSources();
 	}
@@ -68,11 +68,11 @@ public class Config {
 		return new Config(result);
 	}
 
-	private static HandlerGroups readTracers(String path) throws IOException {
+	private static HandlerGroups readConfig(String path) throws IOException {
 		return HandlerGroups.fromJson(new JsonParser()
 				.parse(CharStreams.toString(new InputStreamReader(
 						new FileInputStream(path), Charsets.UTF_8)))
-				.getAsJsonObject().get("tracerGroups").getAsJsonArray());
+				.getAsJsonObject().get("entryPoints").getAsJsonArray());
 	}
 
 }
