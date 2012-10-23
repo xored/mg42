@@ -149,19 +149,13 @@
   #+BEGIN_SRC java
     package com.xored.programspy;
         
-    public class MyHandler implements IHandler
-    {
-        @Override 
-        public Object methodEnter(int methodId, Object instance, Object[] args) {
+    public class MyHandler implements TracerGroup
+    {    
+        @Override
+        public Object mg42MethodProxy(int methodId, Object result, Object instance, Object[] args) {
             switch(methodId) {
             case 0: return handlePromptEnter(instance, args);
             }
-            return null;
-        }
-    
-        @Override
-        public Object methodExit(int methodId, Object result, Object instance, Object[] args) {
-            switch(methodId) {
             case 1: return handleProcessExit(result, instance, args);
             }
             return null;
@@ -186,7 +180,7 @@
   #+BEGIN_SRC java
     public class Program {
         public static void main(String[] args) throws IOException {
-            MG42Runtime.addHandler(0 /* handler class index */, new MySpy());
+            Tracer.addGroup(0 /* handler class index */, new MySpy());
             while (true) {
                 prompt();
                 try {
@@ -198,7 +192,7 @@
         }
         
         private static void prompt() {
-            MG42Runtime.handleEnter(
+            Tracer.methodStart(
                                     0 /* handler class */, 
                                     0 /* handler method in class */,
                                     null /* no 'this' for static method */,
@@ -212,10 +206,10 @@
         private static String process(String command) {
             try {
                 String result = String.format("%s processed", command);
-                MG42Runtime.handleExit(0, 1, result, null, new Object[] { command });
+                Tracer.methodEnd(0, 1, result, null, new Object[] { command });
                 return result;
             } catch(Exception exception) {
-                MG42Runtime.handleExit(0, 1, exception,  null, new Object[] { command });
+                Tracer.methodEnd(0, 1, exception,  null, new Object[] { command });
             }
         }
     
